@@ -13,8 +13,9 @@ service.AddDbContextPool<Database>(optionsAction => {
     var connectionString = configuration.GetConnectionString("default");
     optionsAction.UseMySQL(connectionString!); });
 
-service.AddIdentityCore<IdentityUser>(setupAction => {
-    setupAction.SignIn.RequireConfirmedAccount = true; 
+service.AddIdentityCore<IdentityUser>(setupAction =>
+{
+    setupAction.SignIn.RequireConfirmedAccount = true;
     setupAction.SignIn.RequireConfirmedPhoneNumber = false;
     setupAction.Password.RequireDigit = false;
     setupAction.Password.RequiredLength = 8;
@@ -22,7 +23,7 @@ service.AddIdentityCore<IdentityUser>(setupAction => {
     setupAction.Password.RequireLowercase = false;
     setupAction.Password.RequireUppercase = false;
     setupAction.User.RequireUniqueEmail = true;
-}); 
+}).AddEntityFrameworkStores<Database>(); 
 
 service.AddAuthorization(config => { });
 
