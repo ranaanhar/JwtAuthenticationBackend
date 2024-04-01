@@ -1,5 +1,7 @@
 ﻿using JwtAuthenticationBackend.Data;
 using JwtAuthenticationBackend.Model;
+using JwtAuthenticationBackend.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,15 +11,20 @@ namespace JwtAuthenticationBackend.Controller
     public class LoginController : ControllerBase
     {
         UserManager<IdentityUser> _usermanager; 
-        public LoginController(UserManager<IdentityUser>userManager) {
-           _usermanager = userManager;
+        IJwtHandler _jwtHandler;
+        ILogger<LoginController> _logger;
+        public LoginController(UserManager<IdentityUser>userManager, IJwtHandler jwtHandler, ILogger<LoginController> logger)
+        {
+            _usermanager = userManager;
+            _jwtHandler = jwtHandler;
+            _logger = logger;
         }
 
 
-
+       
         [HttpGet]
         public void Get() {
-           
+            
         }
 
 
@@ -43,26 +50,31 @@ namespace JwtAuthenticationBackend.Controller
                 }
 
 
-                if (user==null)
+                if (user != null)
                 {
-                    return BadRequest("bad credential.");
+                    var result = await _usermanager.CheckPasswordAsync(user, request.Password);
+                    if (result)
+                    {
+                        var respone = _jwtHandler.getJwtAuthentication(user);
+                        if (respone != null)
+                        {
+                            _logger.LogInformation(string.Format("user '{0}' has logged in.", user.UserName));
+                            return Ok(respone);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("token is null!");
+                        }
+                    }
                 }
-
-                var result=await _usermanager.CheckPasswordAsync(user,request.Password);
-                if (!result)
-                {
-                    return BadRequest("bad credential.");
-                }
-                //todo
-                return Ok(new ResponseAuthentication() { Expiration="now",Token="permit"});
+                return BadRequest("bad credential.");
+                
             }
             catch (Exception exp)
             {
-                Console.WriteLine(exp.Message);
+                _logger.LogInformation(exp.Message);
                 return BadRequest("bad credential.");
             }
-
-            //return Ok();
         }
     }
 }
