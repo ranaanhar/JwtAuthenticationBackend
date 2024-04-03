@@ -1,9 +1,11 @@
 ﻿using JwtAuthenticationBackend.Model;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JwtAuthenticationBackend.Controller
 {
+    [EnableCors("cors")]
     [Route("register")]
     public class RegistrationController : ControllerBase
     {
@@ -19,8 +21,9 @@ namespace JwtAuthenticationBackend.Controller
         public void Get() { }
 
         [HttpPost]
-        public async Task< ActionResult<ResponseSignup>> Post([FromBody]RequestSignup request) {
-            if(!ModelState.IsValid) { return BadRequest(ModelState); }
+        public async Task<ActionResult<ResponseSignup>> Post([FromBody]RequestSignup request) {
+            if(!ModelState.IsValid) {
+                return BadRequest(ModelState); }
 
             if (request == null ||
                 string.IsNullOrEmpty(request.Username) ||

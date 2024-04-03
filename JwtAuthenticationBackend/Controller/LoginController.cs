@@ -1,18 +1,22 @@
 ﻿using JwtAuthenticationBackend.Data;
 using JwtAuthenticationBackend.Model;
 using JwtAuthenticationBackend.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JwtAuthenticationBackend.Controller
 {
+    [EnableCors("cors")]
     [Route("login")]
     public class LoginController : ControllerBase
     {
         UserManager<IdentityUser> _usermanager; 
         IJwtHandler _jwtHandler;
         ILogger<LoginController> _logger;
+
         public LoginController(UserManager<IdentityUser>userManager, IJwtHandler jwtHandler, ILogger<LoginController> logger)
         {
             _usermanager = userManager;
@@ -20,14 +24,12 @@ namespace JwtAuthenticationBackend.Controller
             _logger = logger;
         }
 
-
        
         [HttpGet]
         public void Get() {
-            
         }
 
-
+       
         [HttpPost] 
         public async Task<ActionResult<ResponseAuthentication>> Post([FromBody]RequestAuthentication request) {
             if (!ModelState.IsValid)

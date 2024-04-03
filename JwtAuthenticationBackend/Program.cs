@@ -9,6 +9,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var service = builder.Services;
 var configuration = builder.Configuration;
+var cors = "http://localhost:4200";
 
 builder.Logging.AddConsole();
 //builder.Logging.ClearProviders();
@@ -50,6 +51,13 @@ AddJwtBearer(configureOptions => {
     };
 });
 service.AddAuthorization(config => { });
+service.AddCors(config =>
+{
+    config.AddPolicy("cors", policy =>
+    {
+        policy.WithOrigins(cors).AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment()) {
@@ -57,7 +65,7 @@ if (app.Environment.IsDevelopment()) {
     app.UseSwaggerUI();
 }
 
-
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
