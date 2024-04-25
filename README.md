@@ -21,3 +21,19 @@ public class Database:IdentityDbContext<IdentityUser>
 ...
 }
 ```
+
+so before running the app, we must add migrations to the project, we can use dotnet cli :
+
+```
+dotnet ef migrations add initialidentity
+```
+and
+```
+dotnet ef database update
+```
+
+make sure you have installed dotnet ef on your system.
+visite <a>asp.net</a> for installing dotnet ef.
+
+
+
