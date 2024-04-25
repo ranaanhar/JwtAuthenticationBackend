@@ -46,6 +46,7 @@ using (var scope = app.Services.CreateScope())
 ```
 
 <h2>Deploying</h2>
+
 For deploying the app on linux based system we can use the Nginx web serve. 
 for more information see [Microsoft website site](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-8.0&tabs=linux-ubuntu).
 
@@ -83,7 +84,7 @@ upstream dotnet {
 }
 ```
 
-for more information see [Nginx website site] (https://www.nginx.com/blog/tutorial-proxy-net-core-kestrel-nginx-plus/)
+for more information see [Nginx website site](https://www.nginx.com/blog/tutorial-proxy-net-core-kestrel-nginx-plus/). 
 
 
 
