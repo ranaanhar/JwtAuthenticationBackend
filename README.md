@@ -33,7 +33,7 @@ dotnet ef database update
 ```
 
 make sure you have installed dotnet ef on your system.
-visite <a>asp.net</a> for installing dotnet ef.
+visite [Microsoft web site](https://learn.microsoft.com/en-us/ef/core/cli/dotnet) for installing dotnet ef.
 
 
 
