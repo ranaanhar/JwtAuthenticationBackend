@@ -11,9 +11,11 @@ namespace JwtAuthenticationBackend.Controller
     {
         UserManager<IdentityUser> _userManager;
         ILogger<RegistrationController> _logger;
-        public RegistrationController(UserManager<IdentityUser> userManager, ILogger<RegistrationController> logger)
+        RoleManager<IdentityRole> _roleManager;
+        public RegistrationController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<RegistrationController> logger)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
         }
 
@@ -21,9 +23,12 @@ namespace JwtAuthenticationBackend.Controller
         public void Get() { }
 
         [HttpPost]
-        public async Task<ActionResult<ResponseSignup>> Post([FromBody]RequestSignup request) {
-            if(!ModelState.IsValid) {
-                return BadRequest(ModelState); }
+        public async Task<ActionResult<ResponseSignup>> Post([FromBody] RequestSignup request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             if (request == null ||
                 string.IsNullOrEmpty(request.Username) ||
@@ -35,31 +40,38 @@ namespace JwtAuthenticationBackend.Controller
 
             try
             {
-                var exist =await _userManager.FindByNameAsync(request.Username);
-                if (exist == null) {
+                var exist = await _userManager.FindByNameAsync(request.Username);
+                if (exist == null)
+                {
                     exist = await _userManager.FindByEmailAsync(request.Email);
                 }
-                
-                if(exist!=null) {
+
+                if (exist != null)
+                {
                     _logger.LogInformation(string.Format("user already exists."));
                     return BadRequest("fields error");
                 }
 
 
-                var user = new IdentityUser() {
-                    UserName=request.Username,
-                    Email=request.Email,
-                    PhoneNumber=request.PhoneNumber
+                //create user instance
+                var user = new IdentityUser()
+                {
+                    UserName = request.Username,
+                    Email = request.Email,
+                    PhoneNumber = request.PhoneNumber
                 };
 
 
-                var result =await _userManager.CreateAsync(user, request.Password);
+                //add user to database
+                var result = await _userManager.CreateAsync(user, request.Password);
                 if (result.Succeeded)
                 {
                     var response = new ResponseSignup(user);
                     if (!string.IsNullOrEmpty(response.Username))
                     {
-                        _logger.LogInformation(string.Format("user {0} registered.",response));
+                        //add user to role
+                        addUserToRole(user);
+                        _logger.LogInformation(string.Format("user {0} registered.", response));
                         return Ok(response);
                     }
                 }
@@ -78,6 +90,16 @@ namespace JwtAuthenticationBackend.Controller
             }
 
             return BadRequest("fileds error.");
+        }
+
+        //add user to role
+        private async void addUserToRole(IdentityUser user)
+        {
+            var role = _roleManager.FindByNameAsync(Data.DataCostants.User).Result;
+            if (role != null)
+            {
+                await _userManager.AddToRoleAsync(user, Data.DataCostants.User);
+            }
         }
     }
 }

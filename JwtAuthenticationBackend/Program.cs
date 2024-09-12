@@ -18,9 +18,17 @@ service.AddSwaggerGen();
 service.AddControllers();
 
 service.AddDbContextPool<Database>(optionsAction => {
-    var connectionString = configuration.GetConnectionString("default");
-    optionsAction.UseMySQL(connectionString!); });
+    var connectionString = configuration.GetConnectionString("psql");
+    //Use mysql
+    //optionsAction.UseMySQL(connectionString!);
 
+    //Use postgresql 
+    optionsAction.UseNpgsql(connectionString!);
+    });
+
+
+
+//Add role and user from identityCore
 service.AddIdentityCore<IdentityUser>(setupAction =>
 {
     setupAction.SignIn.RequireConfirmedAccount = true;
@@ -31,7 +39,7 @@ service.AddIdentityCore<IdentityUser>(setupAction =>
     setupAction.Password.RequireLowercase = false;
     setupAction.Password.RequireUppercase = false;
     setupAction.User.RequireUniqueEmail = true;
-}).AddEntityFrameworkStores<Database>();
+}).AddRoles<IdentityRole>().AddEntityFrameworkStores<Database>();
 
 service.AddScoped<IJwtHandler,JwtHandler>();
 
