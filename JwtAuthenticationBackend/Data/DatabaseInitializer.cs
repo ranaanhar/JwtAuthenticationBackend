@@ -21,14 +21,14 @@ public class DatabaseInitializer
         {
             Id = Guid.NewGuid().ToString(),
             ConcurrencyStamp = Guid.NewGuid().ToString(),
-            Name = DataCostants.Admin,
+            Name = DataCostants.Admin_Role,
             NormalizedName = DataCostants.Admin_Normalize
         };
         var user_role = new IdentityRole
         {
             Id = Guid.NewGuid().ToString(),
             ConcurrencyStamp = Guid.NewGuid().ToString(),
-            Name = DataCostants.User,
+            Name = DataCostants.User_Role,
             NormalizedName = DataCostants.User_Normalize
         };
 

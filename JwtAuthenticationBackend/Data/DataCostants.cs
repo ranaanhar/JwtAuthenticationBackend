@@ -1,14 +1,15 @@
 using System;
+using System.Reflection.Metadata;
 
 namespace JwtAuthenticationBackend.Data;
 
 public class DataCostants
 {
     //fields
-    private static string _Admin="Administrator";
+    private const string _Admin="Administrator";
     private static string _Admin_Normalize="ADMINISTRATOR";
 
-    private static string _User ="User";
+    private const string _User ="User";
     private static string _User_Normalize ="USER";
 
     // private static string _Seller="Seller";
@@ -16,7 +17,6 @@ public class DataCostants
 
     // private static string _Customer="Customer";
     // private static string _Customer_Normalize="CUSTOMER";
-
 
     //properties
     public static string Admin { get{return _Admin;} }
@@ -27,4 +27,8 @@ public class DataCostants
     // public static string Customer_Normalize { get{return _Customer_Normalize;}}
     // public static string Seller { get{return _Seller;}}
     // public static string Seller_Normalize { get{return _Seller_Normalize;}}
+
+
+    public const string Admin_Role=_Admin;
+    public const string User_Role = _User;
 }

@@ -58,7 +58,9 @@ AddJwtBearer(configureOptions => {
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:key"]!))
     };
 });
-service.AddAuthorization(config => { });
+service.AddAuthorization(config => {
+    config.AddPolicy("userPolicy",policy=>policy.RequireRole("User"));
+ });
 service.AddCors(config =>
 {
     config.AddPolicy("cors", policy =>
