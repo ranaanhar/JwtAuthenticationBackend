@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 JwtAuthenticationBackend/appsettings.json
 appsettings.json
+/JwtAuthenticationBackend/appsettings.json
