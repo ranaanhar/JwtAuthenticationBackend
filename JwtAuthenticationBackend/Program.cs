@@ -1,6 +1,8 @@
+using JwtAuthenticationBackend.Authorization;
 using JwtAuthenticationBackend.Data;
 using JwtAuthenticationBackend.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,14 +19,18 @@ builder.Logging.AddConsole();
 service.AddSwaggerGen();
 service.AddControllers();
 
-service.AddDbContextPool<Database>(optionsAction => {
+
+
+//Add Database Connector
+service.AddDbContextPool<Database>(optionsAction =>
+{
     var connectionString = configuration.GetConnectionString("psql");
     //Use mysql
     //optionsAction.UseMySQL(connectionString!);
 
     //Use postgresql 
     optionsAction.UseNpgsql(connectionString!);
-    });
+});
 
 
 
@@ -41,26 +47,54 @@ service.AddIdentityCore<IdentityUser>(setupAction =>
     setupAction.User.RequireUniqueEmail = true;
 }).AddRoles<IdentityRole>().AddEntityFrameworkStores<Database>();
 
-service.AddScoped<IJwtHandler,JwtHandler>();
 
-service.AddAuthentication(optionsAction => {
+
+//Add Jwt Handler to Scope
+service.AddScoped<IJwtHandler, JwtHandler>();
+
+//TODO For Custom Authorization Middleware
+service.AddSingleton<IAuthorizationMiddlewareResultHandler,CustomAuthorizationMiddlwareHandler>();
+
+//TODO For Custom Authorization Handler
+service.AddSingleton<IAuthorizationHandler,CustomAuthorizationHandler>();
+
+
+
+//Add Authentication
+service.AddAuthentication(optionsAction =>
+{
     optionsAction.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 }).
-AddJwtBearer(configureOptions => {
+AddJwtBearer(configureOptions =>
+{
     configureOptions.SaveToken = true;
     configureOptions.IncludeErrorDetails = true;
-    configureOptions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters() {
+    configureOptions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+    {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateIssuerSigningKey=true,
+        ValidateIssuerSigningKey = true,
         ValidIssuer = configuration["JWT:issuer"],
         ValidAudience = configuration["JWT:audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:key"]!))
     };
 });
-service.AddAuthorization(config => {
-    config.AddPolicy("userPolicy",policy=>policy.RequireRole("User"));
- });
+
+
+
+//Add Authorization
+service.AddAuthorization(config =>
+{
+    config.AddPolicy("userPolicy", policy =>
+    {
+        policy.RequireRole("User").
+        RequireAuthenticatedUser(); 
+    });
+});
+
+
+
+//Add Cors
 service.AddCors(config =>
 {
     config.AddPolicy("cors", policy =>
@@ -70,7 +104,10 @@ service.AddCors(config =>
 });
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment()) {
+
+//Use Swagger
+if (app.Environment.IsDevelopment())
+{
     app.UseSwagger();
     app.UseSwaggerUI();
 }
