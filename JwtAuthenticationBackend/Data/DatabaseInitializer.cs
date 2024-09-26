@@ -1,5 +1,6 @@
 using System;
 using System.Reflection.Metadata;
+using JwtAuthenticationBackend.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,15 +22,15 @@ public class DatabaseInitializer
         {
             Id = Guid.NewGuid().ToString(),
             ConcurrencyStamp = Guid.NewGuid().ToString(),
-            Name = DataCostants.Admin_Role,
-            NormalizedName = DataCostants.Admin_Normalize
+            Name = DataConstants.Admin_Role,
+            NormalizedName = DataConstants.Admin_Normalize
         };
         var user_role = new IdentityRole
         {
             Id = Guid.NewGuid().ToString(),
             ConcurrencyStamp = Guid.NewGuid().ToString(),
-            Name = DataCostants.User_Role,
-            NormalizedName = DataCostants.User_Normalize
+            Name = DataConstants.User_Role,
+            NormalizedName = DataConstants.User_Normalize
         };
 
 
@@ -40,25 +41,25 @@ public class DatabaseInitializer
 
 
         //create admin user
-        var admin_user = new IdentityUser
+        var admin_user = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
             Email = "admin@provider.com",
             EmailConfirmed = true,
             NormalizedEmail = "ADMIN@PROVIDER.COM",
-            UserName = Data.DataCostants.Admin,
-            NormalizedUserName = Data.DataCostants.Admin_Normalize,
+            UserName = Data.DataConstants.Admin,
+            NormalizedUserName = Data.DataConstants.Admin_Normalize,
             PhoneNumber = "9111111111",
             PhoneNumberConfirmed = true,
             ConcurrencyStamp = Guid.NewGuid().ToString(),
         };
 
         //set password for admin user
-        PasswordHasher<IdentityUser> hasher = new PasswordHasher<IdentityUser>();
+        PasswordHasher<ApplicationUser> hasher = new PasswordHasher<ApplicationUser>();
         admin_user.PasswordHash = hasher.HashPassword(admin_user, "SupperSecretPassword4Admin");
 
         //initialize admin user
-        this.modelBuilder.Entity<IdentityUser>().HasData(admin_user);
+        this.modelBuilder.Entity<ApplicationUser>().HasData(admin_user);
 
         //add admin user to roles
         this.modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>

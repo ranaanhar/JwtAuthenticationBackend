@@ -9,10 +9,10 @@ namespace JwtAuthenticationBackend.Controller
     [Route("register")]
     public class RegistrationController : ControllerBase
     {
-        UserManager<IdentityUser> _userManager;
-        ILogger<RegistrationController> _logger;
-        RoleManager<IdentityRole> _roleManager;
-        public RegistrationController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<RegistrationController> logger)
+        readonly UserManager<ApplicationUser> _userManager;
+        readonly ILogger<RegistrationController> _logger;
+        readonly RoleManager<IdentityRole> _roleManager;
+        public RegistrationController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<RegistrationController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -20,7 +20,9 @@ namespace JwtAuthenticationBackend.Controller
         }
 
         [HttpGet]
-        public void Get() { }
+        public void Get() {
+            throw new NotImplementedException();
+         }
 
         [HttpPost]
         public async Task<ActionResult<ResponseSignup>> Post([FromBody] RequestSignup request)
@@ -35,7 +37,7 @@ namespace JwtAuthenticationBackend.Controller
                 string.IsNullOrEmpty(request.Email) ||
                 string.IsNullOrEmpty(request.Password))
             {
-                return BadRequest("fileds error.");
+                return BadRequest(nameof(request));
             }
 
             try
@@ -54,7 +56,7 @@ namespace JwtAuthenticationBackend.Controller
 
 
                 //create user instance
-                var user = new IdentityUser()
+                var user = new ApplicationUser()
                 {
                     UserName = request.Username,
                     Email = request.Email,
@@ -70,7 +72,7 @@ namespace JwtAuthenticationBackend.Controller
                     if (!string.IsNullOrEmpty(response.Username))
                     {
                         //add user to role
-                        addUserToRole(user);
+                        await addUserToRole(user);
                         _logger.LogInformation(string.Format("user {0} registered.", response));
                         return Ok(response);
                     }
@@ -93,12 +95,12 @@ namespace JwtAuthenticationBackend.Controller
         }
 
         //add user to role
-        private async void addUserToRole(IdentityUser user)
+        private async Task addUserToRole(ApplicationUser user)
         {
-            var role = _roleManager.FindByNameAsync(Data.DataCostants.User).Result;
+            var role = _roleManager.FindByNameAsync(Data.DataConstants.User).Result;
             if (role != null)
             {
-                await _userManager.AddToRoleAsync(user, Data.DataCostants.User);
+                await _userManager.AddToRoleAsync(user, Data.DataConstants.User);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using JwtAuthenticationBackend.Model;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace JwtAuthenticationBackend.Data
 {
-    public class Database:IdentityDbContext<IdentityUser>
+    public class Database:IdentityDbContext<ApplicationUser>
     {
 
         public Database(DbContextOptions options) : base(options)

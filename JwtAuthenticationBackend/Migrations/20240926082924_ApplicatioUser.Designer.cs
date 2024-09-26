@@ -3,6 +3,7 @@ using System;
 using JwtAuthenticationBackend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JwtAuthenticationBackend.Migrations
 {
     [DbContext(typeof(Database))]
-    partial class DatabaseModelSnapshot : ModelSnapshot
+    [Migration("20240926082924_ApplicatioUser")]
+    partial class ApplicatioUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,6 +44,9 @@ namespace JwtAuthenticationBackend.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Expiration")
+                        .HasColumnType("text");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -64,13 +70,10 @@ namespace JwtAuthenticationBackend.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("RefreshToken")
+                    b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("RefreshTokenExpiration")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SecurityStamp")
+                    b.Property<string>("Token")
                         .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -94,19 +97,18 @@ namespace JwtAuthenticationBackend.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "1f16564f-d6f0-4512-b769-ad0269c476f3",
+                            Id = "965f3dbf-9b36-4c18-9731-f7f7983d4f82",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "b5ef3ae8-c6fc-4818-9fb3-515705dcd238",
+                            ConcurrencyStamp = "8d4d3d32-ca46-4394-a9c0-b764b2d91e8f",
                             Email = "admin@provider.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@PROVIDER.COM",
                             NormalizedUserName = "ADMINISTRATOR",
-                            PasswordHash = "AQAAAAIAAYagAAAAEDTUkt6MyYh0dI+fIANI6ReSOMkrdW07EspmUnOqH815paXAf2q/3Kn7qEuLXR5nTA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPZgiO12EPloweQ4fW/gSq+0+YO8RB1gplwh9kFIijnYI0qzAmWr87fPIV3J1mLPuw==",
                             PhoneNumber = "9111111111",
                             PhoneNumberConfirmed = true,
-                            RefreshTokenExpiration = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            SecurityStamp = "3546044c-3912-4bda-b444-e6a095ca5a3c",
+                            SecurityStamp = "52ca8aa6-b26d-44bd-a9a7-40bd53307748",
                             TwoFactorEnabled = false,
                             UserName = "Administrator"
                         });
@@ -140,15 +142,15 @@ namespace JwtAuthenticationBackend.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "e1489453-9f71-4847-a74e-66affcba4f71",
-                            ConcurrencyStamp = "a0b81f8a-c325-4b48-8fce-b43faf037d3c",
+                            Id = "f1dc7e17-bc0a-4f51-8b8c-48f428eeee5a",
+                            ConcurrencyStamp = "3ebf29e5-2da9-4d72-bb80-612ee19cd07e",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         },
                         new
                         {
-                            Id = "337dfa67-3502-468a-8a70-2578aecea406",
-                            ConcurrencyStamp = "fe220800-00a0-4b19-8cce-8edfd8750852",
+                            Id = "0133a14b-eb61-4758-bb70-bb39443e7265",
+                            ConcurrencyStamp = "70b0cfbd-4c8d-4872-a04b-0cf1e5d0df4c",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -243,8 +245,8 @@ namespace JwtAuthenticationBackend.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "1f16564f-d6f0-4512-b769-ad0269c476f3",
-                            RoleId = "e1489453-9f71-4847-a74e-66affcba4f71"
+                            UserId = "965f3dbf-9b36-4c18-9731-f7f7983d4f82",
+                            RoleId = "f1dc7e17-bc0a-4f51-8b8c-48f428eeee5a"
                         });
                 });
 

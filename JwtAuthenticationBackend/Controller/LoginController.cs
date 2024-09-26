@@ -13,43 +13,46 @@ namespace JwtAuthenticationBackend.Controller
     [Route("login")]
     public class LoginController : ControllerBase
     {
-        readonly UserManager<IdentityUser> _userManager; 
+        readonly UserManager<ApplicationUser> _userManager;
         readonly IJwtHandler _jwtHandler;
         readonly ILogger<LoginController> _logger;
 
-        public LoginController(UserManager<IdentityUser>userManager, IJwtHandler jwtHandler, ILogger<LoginController> logger)
+        public LoginController(UserManager<ApplicationUser> userManager, IJwtHandler jwtHandler, ILogger<LoginController> logger)
         {
             _userManager = userManager;
             _jwtHandler = jwtHandler;
             _logger = logger;
         }
 
-       
+
         [HttpGet]
-        public void Get() {
+        public void Get()
+        {
+            //TODO Fix This
             throw new NotImplementedException();
         }
 
-       
-        [HttpPost] 
-        public async Task<ActionResult<ResponseAuthentication>> Post([FromBody]RequestAuthentication request) {
+
+        [HttpPost]
+        public async Task<ActionResult<ResponseAuthentication>> Post([FromBody] RequestAuthentication request)
+        {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (request == null || string.IsNullOrEmpty(request.UsernameOrEmail) || string.IsNullOrEmpty(request.Password)) 
+            if (request == null || string.IsNullOrEmpty(request.UsernameOrEmail) || string.IsNullOrEmpty(request.Password))
             {
                 return BadRequest("bad credential.");
             }
 
             try
             {
-                var user=await _userManager.FindByNameAsync(request.UsernameOrEmail);
+                var user = await _userManager.FindByNameAsync(request.UsernameOrEmail);
 
                 if (user == null)
                 {
-                    user=await _userManager.FindByEmailAsync(request.UsernameOrEmail);
+                    user = await _userManager.FindByEmailAsync(request.UsernameOrEmail);
                 }
 
 
@@ -61,7 +64,8 @@ namespace JwtAuthenticationBackend.Controller
                         var response = _jwtHandler.getJwtAuthentication(user);
                         if (response != null)
                         {
-                            _logger.LogInformation(string.Format("user '{0}' has logged in.", user.UserName));
+                            await SaveRefreshToken(user, response.RefreshToken);
+                            _logger.LogInformation("user '{0}' has logged in.", user.UserName);
                             return Ok(response);
                         }
                         else
@@ -71,13 +75,35 @@ namespace JwtAuthenticationBackend.Controller
                     }
                 }
                 return BadRequest("bad credential.");
-                
+
             }
             catch (Exception exp)
             {
-                _logger.LogInformation(exp,exp.Message);
+                _logger.LogInformation(exp, exp.Message);
                 return BadRequest("bad credential.");
             }
         }
+
+
+        //save refresh token
+        /// <summary>
+        /// Save Refresh Token To Database
+        /// </summary>
+        /// <param name="user">ApplicationUser</param>
+        /// <param name="token">string</param>
+        /// <returns></returns>
+        private async Task SaveRefreshToken(ApplicationUser user, string? token)
+        {
+            if (user == null || string.IsNullOrEmpty(token))
+            {
+                return;
+            }
+
+            user.RefreshToken = token;
+            user.RefreshTokenExpiration = DateTime.UtcNow.AddDays(Data.DataConstants.RefreshTokenExpiration);
+            await _userManager.UpdateAsync(user);
+        }
     }
+
+
 }

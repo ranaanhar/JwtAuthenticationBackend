@@ -24,7 +24,7 @@ public class UserManagerController : ControllerBase
     }
 
     [Route("deleteuser")]
-    [Authorize(Roles = Data.DataCostants.Admin_Role + "," + Data.DataCostants.User_Role)]
+    [Authorize(Roles = Data.DataConstants.Admin_Role + "," + Data.DataConstants.User_Role)]
     [HttpPost]
     public ActionResult deleteUser(string UserName)
     {
@@ -32,7 +32,7 @@ public class UserManagerController : ControllerBase
         var role = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(r => r.Value).First();
         if (!string.IsNullOrEmpty(role))
         {
-            if (role == Data.DataCostants.User_Role)
+            if (role == Data.DataConstants.User_Role)
             {
                 var userName = User.Claims.Where(c => c.Type == ClaimTypes.Name).Select(r => r.Value).First();
                 if (!string.IsNullOrEmpty(userName) && userName == UserName)
@@ -41,7 +41,7 @@ public class UserManagerController : ControllerBase
                     return Ok("user removed.");
                 }
             }
-            else if (role == Data.DataCostants.Admin_Role)
+            else if (role == Data.DataConstants.Admin_Role)
             {
                 deleteAccount(UserName);
                 return Ok("user removed.");
@@ -71,7 +71,7 @@ public class UserManagerController : ControllerBase
 
 
     [Route("getall")]
-    [Authorize(Roles = Data.DataCostants.Admin_Role)]
+    [Authorize(Roles = Data.DataConstants.Admin_Role)]
     [HttpPost]
     public ActionResult<IEnumerable<string>> GetAllUser(string id)
     {
@@ -90,7 +90,7 @@ public class UserManagerController : ControllerBase
 
 
     [Route("updateuser")]
-    [Authorize(Roles = Data.DataCostants.User_Role)]
+    [Authorize(Roles = Data.DataConstants.User_Role)]
     [HttpPost]
     public async Task<ActionResult> UpdateUser([FromBody] IdentityUser user)
     {

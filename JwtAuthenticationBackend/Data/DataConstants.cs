@@ -3,7 +3,7 @@ using System.Reflection.Metadata;
 
 namespace JwtAuthenticationBackend.Data;
 
-public class DataCostants
+public static class DataConstants
 {
     //fields
     private const string _Admin="Administrator";
@@ -11,6 +11,9 @@ public class DataCostants
 
     private const string _User ="User";
     private static string _User_Normalize ="USER";
+
+    private static int _RefreshTokenExpirationTime=1;
+    private const int _TokenExpirationTime = 2;
 
     // private static string _Seller="Seller";
     // private static string _Seller_Normalize="SELLER";
@@ -31,4 +34,8 @@ public class DataCostants
 
     public const string Admin_Role=_Admin;
     public const string User_Role = _User;
+
+    //refresh token expiration time in day
+    public static int RefreshTokenExpiration { get{return _RefreshTokenExpirationTime;} }
+    public static int TokenExpirationTime { get{return _TokenExpirationTime;} }
 }

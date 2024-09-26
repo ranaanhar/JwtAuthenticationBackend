@@ -1,5 +1,6 @@
 using JwtAuthenticationBackend.Authorization;
 using JwtAuthenticationBackend.Data;
+using JwtAuthenticationBackend.Model;
 using JwtAuthenticationBackend.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,6 @@ var configuration = builder.Configuration;
 var cors = "http://localhost:4200";
 
 builder.Logging.AddConsole();
-//builder.Logging.ClearProviders();
 
 service.AddSwaggerGen();
 service.AddControllers();
@@ -25,8 +25,6 @@ service.AddControllers();
 service.AddDbContextPool<Database>(optionsAction =>
 {
     var connectionString = configuration.GetConnectionString("psql");
-    //Use mysql
-    //optionsAction.UseMySQL(connectionString!);
 
     //Use postgresql 
     optionsAction.UseNpgsql(connectionString!);
@@ -35,7 +33,7 @@ service.AddDbContextPool<Database>(optionsAction =>
 
 
 //Add role and user from identityCore
-service.AddIdentityCore<IdentityUser>(setupAction =>
+service.AddIdentityCore<ApplicationUser>(setupAction =>
 {
     setupAction.SignIn.RequireConfirmedAccount = true;
     setupAction.SignIn.RequireConfirmedPhoneNumber = false;
