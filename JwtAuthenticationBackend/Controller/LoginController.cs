@@ -13,13 +13,13 @@ namespace JwtAuthenticationBackend.Controller
     [Route("login")]
     public class LoginController : ControllerBase
     {
-        UserManager<IdentityUser> _usermanager; 
-        IJwtHandler _jwtHandler;
-        ILogger<LoginController> _logger;
+        readonly UserManager<IdentityUser> _userManager; 
+        readonly IJwtHandler _jwtHandler;
+        readonly ILogger<LoginController> _logger;
 
         public LoginController(UserManager<IdentityUser>userManager, IJwtHandler jwtHandler, ILogger<LoginController> logger)
         {
-            _usermanager = userManager;
+            _userManager = userManager;
             _jwtHandler = jwtHandler;
             _logger = logger;
         }
@@ -27,6 +27,7 @@ namespace JwtAuthenticationBackend.Controller
        
         [HttpGet]
         public void Get() {
+            throw new NotImplementedException();
         }
 
        
@@ -44,24 +45,24 @@ namespace JwtAuthenticationBackend.Controller
 
             try
             {
-                var user=await _usermanager.FindByNameAsync(request.UsernameOrEmail);
+                var user=await _userManager.FindByNameAsync(request.UsernameOrEmail);
 
                 if (user == null)
                 {
-                    user=await _usermanager.FindByEmailAsync(request.UsernameOrEmail);
+                    user=await _userManager.FindByEmailAsync(request.UsernameOrEmail);
                 }
 
 
                 if (user != null)
                 {
-                    var result = await _usermanager.CheckPasswordAsync(user, request.Password);
+                    var result = await _userManager.CheckPasswordAsync(user, request.Password);
                     if (result)
                     {
-                        var respone = _jwtHandler.getJwtAuthentication(user);
-                        if (respone != null)
+                        var response = _jwtHandler.getJwtAuthentication(user);
+                        if (response != null)
                         {
                             _logger.LogInformation(string.Format("user '{0}' has logged in.", user.UserName));
-                            return Ok(respone);
+                            return Ok(response);
                         }
                         else
                         {
@@ -74,7 +75,7 @@ namespace JwtAuthenticationBackend.Controller
             }
             catch (Exception exp)
             {
-                _logger.LogInformation(exp.Message);
+                _logger.LogInformation(exp,exp.Message);
                 return BadRequest("bad credential.");
             }
         }

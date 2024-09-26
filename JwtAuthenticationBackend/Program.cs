@@ -53,12 +53,10 @@ service.AddIdentityCore<IdentityUser>(setupAction =>
 service.AddScoped<IJwtHandler, JwtHandler>();
 
 //TODO For Custom Authorization Middleware
-service.AddSingleton<IAuthorizationMiddlewareResultHandler,CustomAuthorizationMiddlwareHandler>();
+//service.AddSingleton<IAuthorizationMiddlewareResultHandler,CustomAuthorizationMiddlwareHandler>();
 
 //TODO For Custom Authorization Handler
-service.AddSingleton<IAuthorizationHandler,CustomAuthorizationHandler>();
-
-
+//service.AddSingleton<IAuthorizationHandler,CustomAuthorizationHandler>();
 
 //Add Authentication
 service.AddAuthentication(optionsAction =>
@@ -111,9 +109,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.Run();
+await app.RunAsync();

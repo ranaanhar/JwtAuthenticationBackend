@@ -6,16 +6,20 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace JwtAuthenticationBackend.Service
 {
     public class JwtHandler : IJwtHandler
     {
-        ILogger<JwtHandler> _logger;
-        IConfiguration _configuration;
-        Database _database;
-        const int ExpirationTime = 10;
+        readonly ILogger<JwtHandler> _logger;
+        readonly IConfiguration _configuration;
+        readonly Database _database;
+        //token expiration time in hour
+        const int ExpirationTime = 2;
+        //refresh token expiration time in day
+        const int RefreshExpirationTime=1;
         public JwtHandler(IConfiguration configuration, ILogger<JwtHandler> logger, Database database)
         {
             _configuration = configuration;
@@ -27,10 +31,11 @@ namespace JwtAuthenticationBackend.Service
         {
             try
             {
-                DateTime expire = DateTime.UtcNow.AddMinutes(ExpirationTime);
+                DateTime expire = DateTime.UtcNow.AddHours(ExpirationTime);
                 if (user == null)
                 {
-                    throw new ArgumentNullException("user null received!");
+                    //TODO Fix this
+                    throw new ArgumentNullException(nameof(user));
                 }
                 var handler = new JwtSecurityTokenHandler();
                 var token = new JwtSecurityToken(
@@ -39,22 +44,44 @@ namespace JwtAuthenticationBackend.Service
                     claims: getClaims(user),
                     notBefore: DateTime.UtcNow,
                     expires: expire,
-                    signingCredentials: getSigninCredentials()
+                    signingCredentials: getSignInCredentials()
                     );
                 getExpires(expire);
-                return new ResponseAuthentication() { Expiration = getExpires(expire), Token = handler.WriteToken(token) };
+                
+                var refreshTokenExpiration=DateTime.UtcNow.AddHours(RefreshExpirationTime);
+                var RefreshToken=new RefreshToken{
+                    Token=GenerateRefreshToken(),
+                    Expiration=getExpires(refreshTokenExpiration),
+                    UserId=user.UserName,
+                };
+                //TODO : save refresh token in user 
+
+
+                return new ResponseAuthentication() 
+                { 
+                    Expiration = getExpires(expire),
+                     Token = handler.WriteToken(token),
+                     RefreshToken=RefreshToken };
             }
             catch (Exception exp)
             {
-                _logger.LogInformation(string.Format(exp.Message));
+                _logger.LogInformation(exp,exp.Message);
             }
             return null;
         }
 
-        private SigningCredentials getSigninCredentials()
+        private static string GenerateRefreshToken(){
+            var randomNumber=new byte[64];
+            using var randomNumberGenerator=RandomNumberGenerator.Create();
+            randomNumberGenerator.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        private SigningCredentials getSignInCredentials()
         {
             var key = _configuration["JWT:key"]!;
-            return new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256);
+            var SecurityKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            return new SigningCredentials(SecurityKey, SecurityAlgorithms.HmacSha256);
         }
 
         private Claim[] getClaims(IdentityUser user)
@@ -63,7 +90,8 @@ namespace JwtAuthenticationBackend.Service
             var claims = new List<Claim>();
             claims.Add(new Claim(ClaimTypes.Name, user.UserName!));
             claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, new Guid().ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Iat,DateTime.UtcNow.ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
             if (role != null)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -75,23 +103,20 @@ namespace JwtAuthenticationBackend.Service
         private string? getRole(IdentityUser user)
         {
             var RoleId = _database.UserRoles.Where(x => x.UserId == user.Id).Select(x => x.RoleId).First();
-            _logger.LogInformation($"RoleId = {RoleId},");
             if (!string.IsNullOrEmpty(RoleId))
             {
 
                 var role = _database.Roles.Where(x => x.Id == RoleId).Select(x => x.Name).First();
-                _logger.LogInformation($"RoleName = {role} Added.");
                 return role;
             }
             return null;
         }
 
-        private string getExpires(DateTime time)
+        private static string getExpires(DateTime time)
         {
-
-            var timefrom1970 = time - new DateTime(1970, 1, 1);
-            var timeToMilliseconds = Math.Ceiling(timefrom1970.TotalMilliseconds);
-            _logger.LogInformation($"Expires: {timeToMilliseconds}");
+            var unixEpoch=DateTime.UnixEpoch;
+            var timeFrom1970 = time - unixEpoch;
+            var timeToMilliseconds = Math.Ceiling(timeFrom1970.TotalMilliseconds);
             return timeToMilliseconds.ToString();
         }
     }

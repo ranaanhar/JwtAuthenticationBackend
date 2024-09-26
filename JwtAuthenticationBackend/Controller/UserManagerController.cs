@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JwtAuthenticationBackend.Controller;
 
+//[ApiController]
 [EnableCors("cors")]
 [Route("usermanager")]
 public class UserManagerController : ControllerBase
