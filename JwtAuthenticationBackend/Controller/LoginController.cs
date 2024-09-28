@@ -10,7 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace JwtAuthenticationBackend.Controller
 {
     [EnableCors("cors")]
-    [Route("login")]
+    [Route("api/[controller]")]
+    [ApiController]
     public class LoginController : ControllerBase
     {
         readonly UserManager<ApplicationUser> _userManager;
@@ -26,10 +27,10 @@ namespace JwtAuthenticationBackend.Controller
 
 
         [HttpGet]
-        public void Get()
+        public ActionResult Get()
         {
-            //TODO Fix This
-            throw new NotImplementedException();
+            //TODO Fix this
+            return Ok("Hello from login");
         }
 
 

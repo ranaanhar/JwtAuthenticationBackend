@@ -16,8 +16,6 @@ namespace JwtAuthenticationBackend.Service
         readonly ILogger<JwtHandler> _logger;
         readonly IConfiguration _configuration;
         readonly Database _database;
-        //token expiration time in hour
-        //const int ExpirationTime = 2;
         public JwtHandler(IConfiguration configuration, ILogger<JwtHandler> logger, Database database)
         {
             _configuration = configuration;
@@ -25,6 +23,12 @@ namespace JwtAuthenticationBackend.Service
             _database = database;
         }
 
+        /// <summary>
+        /// return token
+        /// </summary>
+        /// <param name="user">ApplicationUser</param>
+        /// <returns>ResponseAuthentication</returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public ResponseAuthentication? getJwtAuthentication(ApplicationUser user)
         {
             try
@@ -40,7 +44,7 @@ namespace JwtAuthenticationBackend.Service
                 var token = new JwtSecurityToken(
                     issuer: _configuration["JWT:issuer"],
                     audience: _configuration["JWT:audience"],
-                    claims: getClaims(user),
+                    claims: setClaims(user),
                     notBefore: DateTime.UtcNow,
                     expires: expire,
                     signingCredentials: getSignInCredentials()
@@ -60,6 +64,10 @@ namespace JwtAuthenticationBackend.Service
             return null;
         }
 
+        /// <summary>
+        /// Generate Refresh Token 
+        /// </summary>
+        /// <returns>string</returns>
         private static string GenerateRefreshToken()
         {
             var randomNumber = new byte[64];
@@ -68,6 +76,11 @@ namespace JwtAuthenticationBackend.Service
             return Convert.ToBase64String(randomNumber);
         }
 
+
+        /// <summary>
+        /// Set Token Security Key
+        /// </summary>
+        /// <returns></returns>
         private SigningCredentials getSignInCredentials()
         {
             var key = _configuration["JWT:key"]!;
@@ -75,7 +88,13 @@ namespace JwtAuthenticationBackend.Service
             return new SigningCredentials(SecurityKey, SecurityAlgorithms.HmacSha256);
         }
 
-        private Claim[] getClaims(IdentityUser user)
+
+        /// <summary>
+        /// Create Claims Based of Given User
+        /// </summary>
+        /// <param name="user">ApplicationUser</param>
+        /// <returns>Claim[]</returns>
+        private Claim[] setClaims(ApplicationUser user)
         {
             var role = getRole(user);
             var claims = new List<Claim>();
@@ -91,7 +110,42 @@ namespace JwtAuthenticationBackend.Service
             return claims.ToArray();
         }
 
-        private string? getRole(IdentityUser user)
+
+        /// <summary>
+        /// Validate Token And Return Principals From Token
+        /// </summary>
+        /// <param name="token"><string/param>
+        /// <returns>ClaimsPrincipal</returns>
+        /// <exception cref="SecurityTokenException"></exception>
+        public ClaimsPrincipal? GetClaimsPrincipal(string? token){
+            if(string.IsNullOrEmpty(token))
+                return null;
+
+            var validationParameters=new TokenValidationParameters{
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _configuration["JWT:issuer"],
+                ValidAudience = _configuration["JWT:audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:key"]!))
+            };
+            var jwtHandler=new JwtSecurityTokenHandler();
+            var Principal=jwtHandler.ValidateToken(token,validationParameters,out SecurityToken securityToken);
+            if (securityToken is not JwtSecurityToken jwtSecurityToken || 
+            jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new SecurityTokenException("Invalid Token.");
+            }
+            return  Principal;
+        } 
+
+
+        /// <summary>
+        /// Retrieve Role Of User From DataBase 
+        /// </summary>
+        /// <param name="user">ApplicationUser</param>
+        /// <returns>string</returns>
+        private string? getRole(ApplicationUser user)
         {
             var RoleId = _database.UserRoles.Where(x => x.UserId == user.Id).Select(x => x.RoleId).First();
             if (!string.IsNullOrEmpty(RoleId))
@@ -103,6 +157,11 @@ namespace JwtAuthenticationBackend.Service
             return null;
         }
 
+        /// <summary>
+        /// Convert Expiration Time To Number Format
+        /// </summary>
+        /// <param name="time">DateTime</param>
+        /// <returns>string</returns>
         private static string getExpires(DateTime time)
         {
             var unixEpoch = DateTime.UnixEpoch;
@@ -115,5 +174,6 @@ namespace JwtAuthenticationBackend.Service
     public interface IJwtHandler
     {
         public ResponseAuthentication? getJwtAuthentication(ApplicationUser user);
+        public ClaimsPrincipal? GetClaimsPrincipal(string? token);
     }
 }

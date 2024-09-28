@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JwtAuthenticationBackend.Controller;
 
+//CRUD actions
 //[ApiController]
 [EnableCors("cors")]
-[Route("usermanager")]
+[Route("api/[controller]")]
 public class UserManagerController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
@@ -23,7 +24,7 @@ public class UserManagerController : ControllerBase
         //_signInManager = signInManager;
     }
 
-    [Route("deleteuser")]
+    [Route("deleteUser")]
     [Authorize(Roles = Data.DataConstants.Admin_Role + "," + Data.DataConstants.User_Role)]
     [HttpPost]
     public ActionResult deleteUser(string UserName)
@@ -70,7 +71,7 @@ public class UserManagerController : ControllerBase
     // public void GetUser() { }
 
 
-    [Route("getall")]
+    [Route("getAll")]
     [Authorize(Roles = Data.DataConstants.Admin_Role)]
     [HttpPost]
     public ActionResult<IEnumerable<string>> GetAllUser(string id)
@@ -89,7 +90,7 @@ public class UserManagerController : ControllerBase
     }
 
 
-    [Route("updateuser")]
+    [Route("updateUser")]
     [Authorize(Roles = Data.DataConstants.User_Role)]
     [HttpPost]
     public async Task<ActionResult> UpdateUser([FromBody] IdentityUser user)

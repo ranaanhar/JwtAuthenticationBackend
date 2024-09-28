@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace JwtAuthenticationBackend.Controller
 {
     [EnableCors("cors")]
-    [Route("register")]
+    [Route("api/[controller]")]
+    [ApiController]
     public class RegistrationController : ControllerBase
     {
         readonly UserManager<ApplicationUser> _userManager;
