@@ -30,7 +30,7 @@ namespace JwtAuthenticationBackend.Controller
         public ActionResult Get()
         {
             //TODO Fix this
-            return Ok("Hello from login");
+            return BadRequest();
         }
 
 
@@ -62,11 +62,13 @@ namespace JwtAuthenticationBackend.Controller
                     var result = await _userManager.CheckPasswordAsync(user, request.Password);
                     if (result)
                     {
+                        _logger.LogInformation("user is :{0}",user.UserName);
                         var response = _jwtHandler.getJwtAuthentication(user);
+                        _logger.LogInformation("response : {0}",response!.ToString());
                         if (response != null)
                         {
                             await SaveRefreshToken(user, response.RefreshToken);
-                            _logger.LogInformation("user '{0}' has logged in.", user.UserName);
+                            _logger.LogInformation("user '{0}' has logged in:\n ACC_TOK:{1} \n REF_TOK:{2}", user.UserName,response.Token,response.RefreshToken);
                             return Ok(response);
                         }
                         else

@@ -1,5 +1,7 @@
 using JwtAuthenticationBackend.Model;
 using JwtAuthenticationBackend.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -23,70 +25,80 @@ namespace JwtAuthenticationBackend.Controller
             _jwtHandler = jwtHandler;
         }
 
+        [Authorize]
         [HttpGet]
-        public IActionResult Get()
+        public ActionResult Get()
         {
-            return Ok("request for refresh token.");
+            var result = new RequestRefreshToken { AccessToken = "token", RefreshToken = "refresh" };
+            return Ok(result);
         }
 
+        [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] RequestRefreshToken request)
+        public async Task<ActionResult> Post([FromBody] RequestRefreshToken request)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(nameof(request));
-            }
-            var accessToken = request.AccessToken;
-            var refreshToken = request.RefreshToken;
 
-            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
-            {
-                return BadRequest(nameof(accessToken));
-            }
-
-            //TODO Implement Validate Refresh Token
-
-            try
-            {
-                var principal = _jwtHandler.GetClaimsPrincipal(accessToken);
-                if (principal == null)
+                var result = new RequestRefreshToken { AccessToken = request.AccessToken, RefreshToken = request.RefreshToken };
+                if (request != null)
                 {
-                    return BadRequest(nameof(accessToken));
+                    var accessToken = request.AccessToken;
+                    var refreshToken = request.RefreshToken;
+                    if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
+                    {
+                        var responseAuthentication = await RefreshToken(accessToken, refreshToken);
+                        if (responseAuthentication != null)
+                        {
+                            return Ok(responseAuthentication);
+                        }
+                    }
                 }
+            }
+            return BadRequest();
+        }
 
-                //TODO check this code
-                var identity = principal.Identity;
+
+
+        /// <summary>
+        /// validate access token and generate new access token and refresh token
+        /// </summary>
+        /// <param name="accessToken">string</param>
+        /// <param name="refreshToken">string</param>
+        /// <returns>ResponseAuthentication</returns>
+        private async Task<ResponseAuthentication?> RefreshToken(string accessToken, string refreshToken)
+        {
+            var principals = _jwtHandler.GetClaimsPrincipal(accessToken);
+
+            if (principals != null)
+            {
+                var identity = principals.Identity;
                 if (identity != null)
                 {
                     var username = identity.Name;
                     if (!string.IsNullOrEmpty(username))
                     {
-                        var user = await _userManager.FindByNameAsync(username);
-
+                        var user = await _userManager.FindByNameAsync(username!);
                         if (user != null)
                         {
-                            if (user.RefreshToken != refreshToken || user.RefreshTokenExpiration < DateTime.UtcNow)
+                            //TODO check refresh token in refresh tokens chain
+                            if (user.RefreshToken == refreshToken && user.RefreshTokenExpiration > DateTime.UtcNow)
                             {
-                                //refresh token is invalid ==> ??
-                                return BadRequest();
-                            }
+                                var responseAuthentication = _jwtHandler.getJwtAuthentication(user);
 
-                            //create new token.
+                                if (responseAuthentication != null){
+                                    user.RefreshToken=responseAuthentication!.RefreshToken;
+                                    user.RefreshTokenExpiration = DateTime.UtcNow.AddDays(Data.DataConstants.RefreshTokenExpiration);
+                                    await _userManager.UpdateAsync(user);
+                                    return responseAuthentication;
+                                }
+                            }
                         }
                     }
                 }
+           
             }
-            catch (SecurityTokenException exp)
-            {
-                _logger.LogInformation(exp, exp.Message);
-            }
-            catch (System.Exception exp)
-            {
-                _logger.LogInformation(exp, exp.Message);
-            }
-
-
-            return BadRequest();
+            return null;
         }
     }
 }

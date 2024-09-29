@@ -21,8 +21,8 @@ namespace JwtAuthenticationBackend.Controller
         }
 
         [HttpGet]
-        public void Get() {
-            throw new NotImplementedException();
+        public ActionResult Get() {
+            return BadRequest();
          }
 
         [HttpPost]

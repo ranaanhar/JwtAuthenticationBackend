@@ -4,7 +4,7 @@ namespace JwtAuthenticationBackend.Model
 {
     public class ResponseSignup
     {
-        public ResponseSignup(IdentityUser user) {
+        public ResponseSignup(ApplicationUser user) {
             if (user == null) {
                 return;
             }

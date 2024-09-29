@@ -67,8 +67,9 @@ AddJwtBearer(configureOptions =>
     configureOptions.IncludeErrorDetails = true;
     configureOptions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime=true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = configuration["JWT:issuer"],
         ValidAudience = configuration["JWT:audience"],

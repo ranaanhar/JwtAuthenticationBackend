@@ -94,20 +94,19 @@ namespace JwtAuthenticationBackend.Service
         /// </summary>
         /// <param name="user">ApplicationUser</param>
         /// <returns>Claim[]</returns>
-        private Claim[] setClaims(ApplicationUser user)
+        private List<Claim> setClaims(ApplicationUser user)
         {
             var role = getRole(user);
             var claims = new List<Claim>();
             claims.Add(new Claim(ClaimTypes.Name, user.UserName!));
             claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()));
             claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
             if (role != null)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            return claims.ToArray();
+            return claims;
         }
 
 
@@ -122,21 +121,38 @@ namespace JwtAuthenticationBackend.Service
                 return null;
 
             var validationParameters=new TokenValidationParameters{
-                ValidateIssuer = true,
-                ValidateAudience = true,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateActor=false,
+                ValidateLifetime=false,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = _configuration["JWT:issuer"],
                 ValidAudience = _configuration["JWT:audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:key"]!))
             };
             var jwtHandler=new JwtSecurityTokenHandler();
-            var Principal=jwtHandler.ValidateToken(token,validationParameters,out SecurityToken securityToken);
-            if (securityToken is not JwtSecurityToken jwtSecurityToken || 
-            jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            try
             {
-                throw new SecurityTokenException("Invalid Token.");
+                var principals=jwtHandler.ValidateToken(token, validationParameters,out SecurityToken securityToken);
+                if (securityToken is not JwtSecurityToken jwtSecurityToken||
+                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,StringComparison.InvariantCultureIgnoreCase))
+                {
+                    _logger.LogInformation("JWT handler line 141 throw exception.");
+                }
+                return principals;
             }
-            return  Principal;
+            catch (System.Exception)
+            {
+                _logger.LogInformation("jwt handler error");                
+            }
+            // var Principal=jwtHandler.ValidateToken(token,validationParameters,out SecurityToken securityToken);
+            // if (securityToken is not JwtSecurityToken jwtSecurityToken || 
+            // jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            // {
+            //     throw new SecurityTokenException("Invalid Token.");
+            // }
+            // return  Principal;
+            return null;
         } 
 
 
