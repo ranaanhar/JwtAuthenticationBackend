@@ -7,7 +7,7 @@ public class CustomAuthorizationRequirement : IAuthorizationRequirement
 {
     public CustomAuthorizationRequirement() { }
 
-    public string AdminRole
+    public  string AdminRole
     {
         get { return "Admin for example"; }
     }

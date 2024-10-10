@@ -24,7 +24,7 @@ service.AddControllers();
 //Add Database Connector
 service.AddDbContextPool<Database>(optionsAction =>
 {
-    var connectionString = configuration.GetConnectionString("psql");
+    var connectionString = configuration.GetConnectionString("PostgresSQL");
 
     //Use postgresql 
     optionsAction.UseNpgsql(connectionString!);
@@ -50,11 +50,11 @@ service.AddIdentityCore<ApplicationUser>(setupAction =>
 //Add Jwt Handler to Scope
 service.AddScoped<IJwtHandler, JwtHandler>();
 
-//TODO For Custom Authorization Middleware
-//service.AddSingleton<IAuthorizationMiddlewareResultHandler,CustomAuthorizationMiddlwareHandler>();
 
-//TODO For Custom Authorization Handler
-//service.AddSingleton<IAuthorizationHandler,CustomAuthorizationHandler>();
+service.AddSingleton<IAuthorizationMiddlewareResultHandler,CustomAuthorizationMiddlewareHandler>();
+
+
+service.AddSingleton<IAuthorizationHandler,CustomAuthorizationHandler>();
 
 //Add Authentication
 service.AddAuthentication(optionsAction =>

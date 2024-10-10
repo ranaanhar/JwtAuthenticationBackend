@@ -15,13 +15,11 @@ public class UserManagerController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly ILogger<UserManagerController> _logger;
-    //private readonly SignInManager<IdentityUser> _signInManager;
 
     public UserManagerController(UserManager<IdentityUser> userManager, ILogger<UserManagerController> logger)
-    {//},SignInManager<IdentityUser>signInManager){
+    {
         _userManager = userManager;
         _logger = logger;
-        //_signInManager = signInManager;
     }
 
     [Route("deleteUser")]
@@ -29,6 +27,9 @@ public class UserManagerController : ControllerBase
     [HttpPost]
     public ActionResult deleteUser(string UserName)
     {
+        if(!ModelState.IsValid){
+            return BadRequest("model state is not valid");
+        }
         //additional Authorization
         var role = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(r => r.Value).First();
         if (!string.IsNullOrEmpty(role))
@@ -65,17 +66,14 @@ public class UserManagerController : ControllerBase
     }
 
 
-    // [Route("getuser")]
-    // [Authorize(Roles = Data.DataCostants.Admin_Role)]
-    // [HttpPost]
-    // public void GetUser() { }
-
-
     [Route("getAll")]
     [Authorize(Roles = Data.DataConstants.Admin_Role)]
     [HttpPost]
     public ActionResult<IEnumerable<string>> GetAllUser(string id)
     {
+        if(ModelState.IsValid){
+            return BadRequest("model state is not valid.");
+        }
         try
         {
             var result = _userManager.Users.Select(x => x.UserName).AsEnumerable();

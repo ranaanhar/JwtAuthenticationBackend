@@ -55,8 +55,8 @@ public class DatabaseInitializer
         };
 
         //set password for admin user
-        PasswordHasher<ApplicationUser> hasher = new PasswordHasher<ApplicationUser>();
-        admin_user.PasswordHash = hasher.HashPassword(admin_user, "SupperSecretPassword4Admin");
+        var PasswordHash = new PasswordHasher<ApplicationUser>();
+        admin_user.PasswordHash = PasswordHash.HashPassword(admin_user, "SupperSecretPassword4Admin");
 
         //initialize admin user
         this.modelBuilder.Entity<ApplicationUser>().HasData(admin_user);

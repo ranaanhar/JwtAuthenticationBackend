@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace JwtAuthenticationBackend.Authorization;
 
-public class CustomAuthorizationFilter : AuthorizeAttribute, IAuthorizationFilter
+public class CustomAuthorizationAttribute : AuthorizeAttribute, IAuthorizationFilter
 {
-    public string CustomrAuthorize { get; set; }="";
+    public string CustomAuthorize { get; set; }="";
 
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        if (string.IsNullOrEmpty(CustomrAuthorize))
+        if (string.IsNullOrEmpty(CustomAuthorize))
         {
             context.Result=new UnauthorizedResult();
             return;
@@ -19,5 +19,6 @@ public class CustomAuthorizationFilter : AuthorizeAttribute, IAuthorizationFilte
 
         var username=context.HttpContext.User.Identity!.Name;
         var claims=context.HttpContext.User.Claims;
+
     }
 }

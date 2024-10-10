@@ -51,7 +51,7 @@ namespace JwtAuthenticationBackend.Controller
 
                 if (exist != null)
                 {
-                    _logger.LogInformation(string.Format("user already exists."));
+                    _logger.LogInformation("user already exists.");
                     return BadRequest("fields error");
                 }
 
@@ -74,7 +74,7 @@ namespace JwtAuthenticationBackend.Controller
                     {
                         //add user to role
                         await addUserToRole(user);
-                        _logger.LogInformation(string.Format("user {0} registered.", response));
+                        _logger.LogInformation("user {0} registered.", response);
                         return Ok(response);
                     }
                 }
@@ -88,11 +88,11 @@ namespace JwtAuthenticationBackend.Controller
             }
             catch (Exception exp)
             {
-                _logger.LogInformation(exp.Message);
-                return BadRequest("fileds error.");
+                _logger.LogInformation(exp,exp.Message);
+                return BadRequest("username and password error.");
             }
 
-            return BadRequest("fileds error.");
+            return BadRequest("username and password error.");
         }
 
         //add user to role

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization.Policy;
 
 namespace JwtAuthenticationBackend.Authorization;
 
-public class CustomAuthorizationMiddlwareHandler : IAuthorizationMiddlewareResultHandler
+public class CustomAuthorizationMiddlewareHandler : IAuthorizationMiddlewareResultHandler
 {
     public readonly AuthorizationMiddlewareResultHandler defaultHandler=new();
     public async Task HandleAsync(RequestDelegate next,

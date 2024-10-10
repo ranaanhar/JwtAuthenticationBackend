@@ -37,8 +37,7 @@ namespace JwtAuthenticationBackend.Service
 
                 if (user == null)
                 {
-                    //TODO Fix this
-                    throw new ArgumentNullException(nameof(user));
+                    return null;
                 }
                 var handler = new JwtSecurityTokenHandler();
                 var token = new JwtSecurityToken(
@@ -123,7 +122,6 @@ namespace JwtAuthenticationBackend.Service
             var validationParameters=new TokenValidationParameters{
                 ValidateIssuer = false,
                 ValidateAudience = false,
-                ValidateActor=false,
                 ValidateLifetime=false,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = _configuration["JWT:issuer"],
@@ -141,17 +139,10 @@ namespace JwtAuthenticationBackend.Service
                 }
                 return principals;
             }
-            catch (System.Exception)
+            catch(Exception)
             {
-                _logger.LogInformation("jwt handler error");                
+                //jwt handler throw error
             }
-            // var Principal=jwtHandler.ValidateToken(token,validationParameters,out SecurityToken securityToken);
-            // if (securityToken is not JwtSecurityToken jwtSecurityToken || 
-            // jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            // {
-            //     throw new SecurityTokenException("Invalid Token.");
-            // }
-            // return  Principal;
             return null;
         } 
 

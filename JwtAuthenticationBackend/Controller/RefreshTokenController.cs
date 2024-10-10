@@ -27,8 +27,9 @@ namespace JwtAuthenticationBackend.Controller
 
         [Authorize]
         [HttpGet]
-        public ActionResult Get()
+        public ActionResult<RequestRefreshToken> Get()
         {
+            _logger.LogInformation("request get refresh method.");
             var result = new RequestRefreshToken { AccessToken = "token", RefreshToken = "refresh" };
             return Ok(result);
         }
@@ -37,21 +38,19 @@ namespace JwtAuthenticationBackend.Controller
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] RequestRefreshToken request)
         {
-            if (ModelState.IsValid)
+            _logger.LogInformation("in RequestRefreshToken.");
+            if (ModelState.IsValid && request != null)
             {
-
-                var result = new RequestRefreshToken { AccessToken = request.AccessToken, RefreshToken = request.RefreshToken };
-                if (request != null)
+                var accessToken = request.AccessToken;
+                var refreshToken = request.RefreshToken;
+                _logger.LogInformation("Last token:{0}", accessToken);
+                if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
                 {
-                    var accessToken = request.AccessToken;
-                    var refreshToken = request.RefreshToken;
-                    if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
+                    var responseAuthentication = await RefreshToken(accessToken, refreshToken);
+                    if (responseAuthentication != null)
                     {
-                        var responseAuthentication = await RefreshToken(accessToken, refreshToken);
-                        if (responseAuthentication != null)
-                        {
-                            return Ok(responseAuthentication);
-                        }
+                        _logger.LogInformation("return refresh token:{0}", responseAuthentication.Token);
+                        return Ok(responseAuthentication);
                     }
                 }
             }
@@ -68,6 +67,26 @@ namespace JwtAuthenticationBackend.Controller
         /// <returns>ResponseAuthentication</returns>
         private async Task<ResponseAuthentication?> RefreshToken(string accessToken, string refreshToken)
         {
+            var username=GetUserFromTokenPrincipals(accessToken);
+            if (!string.IsNullOrEmpty(username)){
+                var user=await _userManager.FindByNameAsync(username!);
+                if (user != null && user.RefreshToken == refreshToken && user.RefreshTokenExpiration > DateTime.UtcNow){
+                    //TODO check refresh tokens chain in database
+                    var responseAuthentication = _jwtHandler.getJwtAuthentication(user);
+                    if (responseAuthentication != null){
+                        
+                    //save refresh token
+                    user.RefreshToken = responseAuthentication!.RefreshToken;
+                    user.RefreshTokenExpiration = DateTime.UtcNow.AddDays(Data.DataConstants.RefreshTokenExpiration);
+                    await _userManager.UpdateAsync(user);
+                    return responseAuthentication;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private string? GetUserFromTokenPrincipals(string accessToken){
             var principals = _jwtHandler.GetClaimsPrincipal(accessToken);
 
             if (principals != null)
@@ -78,27 +97,13 @@ namespace JwtAuthenticationBackend.Controller
                     var username = identity.Name;
                     if (!string.IsNullOrEmpty(username))
                     {
-                        var user = await _userManager.FindByNameAsync(username!);
-                        if (user != null)
-                        {
-                            //TODO check refresh token in refresh tokens chain
-                            if (user.RefreshToken == refreshToken && user.RefreshTokenExpiration > DateTime.UtcNow)
-                            {
-                                var responseAuthentication = _jwtHandler.getJwtAuthentication(user);
+                        return username;
 
-                                if (responseAuthentication != null){
-                                    user.RefreshToken=responseAuthentication!.RefreshToken;
-                                    user.RefreshTokenExpiration = DateTime.UtcNow.AddDays(Data.DataConstants.RefreshTokenExpiration);
-                                    await _userManager.UpdateAsync(user);
-                                    return responseAuthentication;
-                                }
-                            }
-                        }
                     }
                 }
-           
+
             }
             return null;
-        }
+        }       
     }
 }
